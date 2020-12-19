@@ -26,8 +26,8 @@ namespace FluentValidation.Internal {
 	/// Builds a validation rule and constructs a validator.
 	/// </summary>
 	/// <typeparam name="T">Type of object being validated</typeparam>
-	/// <typeparam name="TProperty">Type of property being validated</typeparam>
-	internal class RuleBuilder<T, TProperty> : IRuleBuilderOptions<T, TProperty>, IRuleBuilderInitial<T, TProperty>, IRuleBuilderInitialCollection<T,TProperty> {
+	/// <typeparam name="TTransformed">Type of property being validated</typeparam>
+	internal class RuleBuilder<T, TTransformed> : IRuleBuilderOptions<T, TTransformed>, IRuleBuilderInitial<T, TTransformed>, IRuleBuilderInitialCollection<T,TTransformed> {
 		/// <summary>
 		/// The rule being created by this RuleBuilder.
 		/// </summary>
@@ -51,7 +51,7 @@ namespace FluentValidation.Internal {
 		/// </summary>
 		/// <param name="validator">The validator to set</param>
 		/// <returns></returns>
-		public IRuleBuilderOptions<T, TProperty> SetValidator(IPropertyValidator validator) {
+		public IRuleBuilderOptions<T, TTransformed> SetValidator(IPropertyValidator validator) {
 			validator.Guard("Cannot pass a null validator to SetValidator.", nameof(validator));
 			Rule.AddValidator(validator);
 			return this;
@@ -62,9 +62,9 @@ namespace FluentValidation.Internal {
 		/// </summary>
 		/// <param name="validator">The validator to set</param>
 		/// <param name="ruleSets"></param>
-		public IRuleBuilderOptions<T, TProperty> SetValidator(IValidator<TProperty> validator, params string[] ruleSets) {
+		public IRuleBuilderOptions<T, TTransformed> SetValidator(IValidator<TTransformed> validator, params string[] ruleSets) {
 			validator.Guard("Cannot pass a null validator to SetValidator", nameof(validator));
-			var adaptor = new ChildValidatorAdaptor<T,TProperty>(validator, validator.GetType()) {
+			var adaptor = new ChildValidatorAdaptor<T,TTransformed>(validator, validator.GetType()) {
 				RuleSets = ruleSets
 			};
 			SetValidator(adaptor);
@@ -76,10 +76,10 @@ namespace FluentValidation.Internal {
 		/// </summary>
 		/// <param name="validatorProvider">The validator provider to set</param>
 		/// <param name="ruleSets"></param>
-		public IRuleBuilderOptions<T, TProperty> SetValidator<TValidator>(Func<T, TValidator> validatorProvider, params string[] ruleSets)
-			where TValidator : IValidator<TProperty> {
+		public IRuleBuilderOptions<T, TTransformed> SetValidator<TValidator>(Func<T, TValidator> validatorProvider, params string[] ruleSets)
+			where TValidator : IValidator<TTransformed> {
 			validatorProvider.Guard("Cannot pass a null validatorProvider to SetValidator", nameof(validatorProvider));
-			SetValidator(new ChildValidatorAdaptor<T,TProperty>(context => validatorProvider((T) context.InstanceToValidate), typeof (TValidator)) {
+			SetValidator(new ChildValidatorAdaptor<T,TTransformed>(context => validatorProvider((T) context.InstanceToValidate), typeof (TValidator)) {
 				RuleSets = ruleSets
 			});
 			return this;
@@ -90,39 +90,39 @@ namespace FluentValidation.Internal {
 		/// </summary>
 		/// <param name="validatorProvider">The validator provider to use</param>
 		/// <param name="ruleSets"></param>
-		public IRuleBuilderOptions<T, TProperty> SetValidator<TValidator>(Func<T, TProperty, TValidator> validatorProvider, params string[] ruleSets) where TValidator : IValidator<TProperty> {
+		public IRuleBuilderOptions<T, TTransformed> SetValidator<TValidator>(Func<T, TTransformed, TValidator> validatorProvider, params string[] ruleSets) where TValidator : IValidator<TTransformed> {
 			validatorProvider.Guard("Cannot pass a null validatorProvider to SetValidator", nameof(validatorProvider));
-			SetValidator(new ChildValidatorAdaptor<T,TProperty>(context => validatorProvider((T) context.InstanceToValidate, (TProperty) context.PropertyValue), typeof (TValidator)) {
+			SetValidator(new ChildValidatorAdaptor<T,TTransformed>(context => validatorProvider((T) context.InstanceToValidate, (TTransformed) context.PropertyValue), typeof (TValidator)) {
 				RuleSets = ruleSets
 			});
 			return this;
 		}
 
-		IRuleBuilderInitial<T, TProperty> IRuleBuilderInitial<T, TProperty>.Configure(Action<PropertyRule<T>> configurator) {
+		IRuleBuilderInitial<T, TTransformed> IRuleBuilderInitial<T, TTransformed>.Configure(Action<PropertyRule<T>> configurator) {
 			configurator(Rule);
 			return this;
 		}
 
-		IRuleBuilderOptions<T, TProperty> IRuleBuilderOptions<T, TProperty>.Configure(Action<PropertyRule<T>> configurator) {
+		IRuleBuilderOptions<T, TTransformed> IRuleBuilderOptions<T, TTransformed>.Configure(Action<PropertyRule<T>> configurator) {
 			configurator(Rule);
 			return this;
 		}
 
-		IRuleBuilderInitialCollection<T, TProperty> IRuleBuilderInitialCollection<T, TProperty>.Configure(Action<CollectionPropertyRule<T, TProperty>> configurator) {
-			configurator((CollectionPropertyRule<T, TProperty>) Rule);
+		IRuleBuilderInitialCollection<T, TTransformed> IRuleBuilderInitialCollection<T, TTransformed>.Configure(Action<CollectionPropertyRule<T, TTransformed>> configurator) {
+			configurator((CollectionPropertyRule<T, TTransformed>) Rule);
 			return this;
 		}
 
-		public IRuleBuilderInitial<T, TNew> Transform<TNew>(Func<TProperty, TNew> transformationFunc) {
+		public IRuleBuilderInitial<T, TNew> Transform<TNew>(Func<TTransformed, TNew> transformationFunc) {
 			if (transformationFunc == null) throw new ArgumentNullException(nameof(transformationFunc));
-			Rule.Transformer = transformationFunc.CoerceToNonGeneric();
+			Rule.ApplyTransformer(transformationFunc);
 			return new RuleBuilder<T, TNew>(Rule, ParentValidator);
 		}
 
 		/// <summary>
 		/// Creates a scope for declaring dependent rules.
 		/// </summary>
-		public IRuleBuilderOptions<T, TProperty> DependentRules(Action action) {
+		public IRuleBuilderOptions<T, TTransformed> DependentRules(Action action) {
 			var dependencyContainer = new List<PropertyRule<T>>();
 
 			// Capture any rules added to the parent validator inside this delegate.

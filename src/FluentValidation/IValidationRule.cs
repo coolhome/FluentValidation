@@ -20,8 +20,18 @@ namespace FluentValidation {
 	using System;
 	using System.Collections.Generic;
 	using System.Reflection;
+	using System.Threading;
+	using System.Threading.Tasks;
 	using Internal;
 	using Validators;
+
+	// internal interface IValidationRule<T> : IValidationRule {
+	// 	void Validate(ValidationContext<T> context);
+	// 	Task ValidateAsync(ValidationContext<T> context, CancellationToken cancellation);
+	//
+	// 	void ApplyCondition(Func<IValidationContext, bool> predicate, ApplyConditionTo applyConditionTo = ApplyConditionTo.AllValidators);
+	// 	void ApplyAsyncCondition(Func<IValidationContext, CancellationToken, Task<bool>> predicate, ApplyConditionTo applyConditionTo = ApplyConditionTo.AllValidators);
+	// }
 
 	/// <summary>
 	/// Defines a rule associated with a property which can have multiple validators.

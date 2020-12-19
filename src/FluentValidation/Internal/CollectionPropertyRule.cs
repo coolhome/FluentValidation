@@ -32,7 +32,7 @@ namespace FluentValidation.Internal {
 	internal class CollectionInvoker<T, TElement, TTransformed> : PropertyValidatorInvoker<T, TElement, TTransformed> {
 		public CollectionInvoker() { }
 
-		public CollectionInvoker(Func<TElement, TTransformed> transformer) : base(transformer) { }
+		public CollectionInvoker(Func<T, TElement, TTransformed> transformer) : base(transformer) { }
 
 		public override void Validate(ValidationContext<T> context, PropertyRule<T> baseRule) {
 			var rule = (CollectionPropertyRule<T, TElement>) baseRule;
@@ -106,7 +106,7 @@ namespace FluentValidation.Internal {
 					newContext.PropertyChain.Add(propertyName);
 					newContext.PropertyChain.AddIndexer(indexer, useDefaultIndexFormat);
 
-					var valueToValidate = Transformer != null ? (object)Transformer(element) : element;
+					var valueToValidate = Transformer != null ? (object)Transformer(context.InstanceToValidate, element) : element;
 					var propertyNameToValidate = newContext.PropertyChain.ToString();
 					var totalFailuresInner = context.Failures.Count;
 
@@ -218,7 +218,7 @@ namespace FluentValidation.Internal {
 					newContext.PropertyChain.Add(propertyName);
 					newContext.PropertyChain.AddIndexer(indexer, useDefaultIndexFormat);
 
-					var valueToValidate = Transformer != null ? (object)Transformer(element) : element;
+					var valueToValidate = Transformer != null ? (object)Transformer(context.InstanceToValidate, element) : element;
 					var propertyNameToValidate = newContext.PropertyChain.ToString();
 					var totalFailuresInner = context.Failures.Count;
 
@@ -369,7 +369,7 @@ namespace FluentValidation.Internal {
 			return new CollectionPropertyRule<T, TElement>(member, x => compiled(x), expression, cascadeModeThunk, new CollectionInvoker<T,TElement,TElement>());
 		}
 
-		internal override void ApplyTransformer<TValue, TTransformed>(Func<TValue,TTransformed> transformationFunc) {
+		internal override void ApplyTransformer<TValue, TTransformed>(Func<T, TValue,TTransformed> transformationFunc) {
 			_validators = new CollectionInvoker<T,TValue,TTransformed>(transformationFunc);
 		}
 	}

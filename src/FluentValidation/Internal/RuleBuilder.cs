@@ -115,6 +115,11 @@ namespace FluentValidation.Internal {
 
 		public IRuleBuilderInitial<T, TNew> Transform<TNew>(Func<TTransformed, TNew> transformationFunc) {
 			if (transformationFunc == null) throw new ArgumentNullException(nameof(transformationFunc));
+			return Transform((x, value) => transformationFunc(value));
+		}
+
+		public IRuleBuilderInitial<T, TNew> Transform<TNew>(Func<T, TTransformed, TNew> transformationFunc) {
+			if (transformationFunc == null) throw new ArgumentNullException(nameof(transformationFunc));
 			Rule.ApplyTransformer(transformationFunc);
 			return new RuleBuilder<T, TNew>(Rule, ParentValidator);
 		}

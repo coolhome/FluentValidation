@@ -38,6 +38,14 @@ namespace FluentValidation {
 		IRuleBuilderInitial<T, TNew> Transform<TNew>(Func<TProperty, TNew> transformationFunc);
 
 		/// <summary>
+		/// Transforms the property value with propagated original object before validation occurs.
+		/// </summary>
+		/// <typeparam name="TNew"></typeparam>
+		/// <param name="transformationFunc"></param>
+		/// <returns></returns>
+		IRuleBuilderInitial<T, TNew> Transform<TNew>(Func<T, TProperty, TNew> transformationFunc);
+
+		/// <summary>
 		/// Configures the rule.
 		/// </summary>
 		/// <param name="configurator">Action to configure the object.</param>
@@ -117,6 +125,13 @@ namespace FluentValidation {
 		/// <param name="transformationFunc"></param>
 		/// <returns></returns>
 		IRuleBuilderInitial<T, TNew> Transform<TNew>(Func<TElement, TNew> transformationFunc);
+
+		/// <summary>
+		/// Transforms the collection element value with propagated original object before validation occurs.
+		/// </summary>
+		/// <param name="transformationFunc"></param>
+		/// <returns></returns>
+		IRuleBuilderInitial<T, TNew> Transform<TNew>(Func<T, TElement, TNew> transformationFunc);
 
 		/// <summary>
 		/// Configures the rule object.

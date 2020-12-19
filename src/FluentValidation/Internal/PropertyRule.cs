@@ -47,14 +47,11 @@ namespace FluentValidation.Internal {
 
 	internal class PropertyValidatorInvoker<T, TValue, TTransformed> : List<IPropertyValidator>, IPropertyValidatorInvoker<T> {
 
-		//TODO: For 10.0 we need to support propogating the original object
-		// https://github.com/FluentValidation/FluentValidation/pull/1532
-		protected Func<TValue, TTransformed> Transformer { get; }
-
+		protected Func<T, TValue, TTransformed> Transformer { get; }
 
 		public PropertyValidatorInvoker() {}
 
-		public PropertyValidatorInvoker(Func<TValue, TTransformed> transformer) {
+		public PropertyValidatorInvoker(Func<T, TValue, TTransformed> transformer) {
 			Transformer = transformer;
 		}
 
@@ -215,7 +212,7 @@ namespace FluentValidation.Internal {
 
 		private object GetPropertyValue(T instanceToValidate, PropertyRule<T> rule) {
 			var value = rule.PropertyFunc(instanceToValidate);
-			if (Transformer != null) value = Transformer((TValue) value);
+			if (Transformer != null) value = Transformer(instanceToValidate, (TValue) value);
 			return value;
 		}
 	}
@@ -490,7 +487,7 @@ namespace FluentValidation.Internal {
 		internal virtual async Task ValidateAsync(ValidationContext<T> context, CancellationToken cancellation)
 			=> await _validators.ValidateAsync(context, this, cancellation);
 
-		internal virtual void ApplyTransformer<TValue, TTransformed>(Func<TValue,TTransformed> transformationFunc) {
+		internal virtual void ApplyTransformer<TValue, TTransformed>(Func<T, TValue,TTransformed> transformationFunc) {
 			_validators = new PropertyValidatorInvoker<T,TValue,TTransformed>(transformationFunc);
 		}
 	}
